@@ -1,0 +1,31 @@
+pipeline {
+						agent any 
+							stages {
+								stage ('Build'){
+								agent {
+								label 'jslave01'
+									}
+										steps {					
+												//sh '/opt/maven/apache-maven-3.6.2/bin/mvn clean package'
+												sh '/opt/maven/apache-maven-3.6.2/bin/mvn clean package'
+					}
+					}
+								stage ('deploy') {
+										steps {
+											sshagent(['tocatdev']) {
+													sh 'scp -o StrictHostkeyChecking=no target/*.war ec2-user@172.31.8.16:/home/ec2-user/apache-tomcat-9.0.0.M10/webapps/'
+					}
+					}
+					post{
+                success{
+                    echo 'Now Archiving ....'
+		    archiveArtifacts artifacts : '**/*.war' 
+                     sshagent(['tocatdev']) {
+                    sh 'scp **/*.war ec2-user@172.31.8.16:/home/ec2-user/artifact/'
+                }
+		}
+            }
+
+					}
+					}
+					}
